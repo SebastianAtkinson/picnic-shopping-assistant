@@ -44,11 +44,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         # Create prompt for Claude
         system_prompt = """You are a helpful cooking assistant. When users tell you what ingredients they have, 
-        suggest 3-5 simple recipes they could make. For each recipe, include:
+        suggest 5 vegetarian recipes they could make. Find the recipes on the following websites and their subdomains.
+        - https://miljuschka.nl/
+        - https://uitpaulineskeuken.nl
+         
+        In your message to the user you should include for each recipe:
         - Recipe name
         - Brief description (1 sentence)
-        - List of ALL ingredients needed (mark which ones they already have)
         - Estimated cooking time
+        - URL to the recipe (you have to be sure that the URL is correct and exists)
         
         Keep suggestions practical and realistic. Format your response in a clear, readable way."""
         
@@ -57,12 +61,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             model="claude-sonnet-4-20250514",
             max_tokens=1500,
             system=system_prompt,
+            tools=[{"type": "web_search_20250305",
+                    "name": "web_search",
+                    "max_uses": 5,
+                    "allowed_domains": [
+                        "https://miljuschka.nl",
+                        "https://uitpaulineskeuken.nl"
+                    ]}],
             messages=[
                 {"role": "user", "content": user_message}
             ]
         )
         
-        response_text = message.content[0].text
+        # response_text = message.content[0].text
+        response_text = "".join(
+            block.text for block in message.content if hasattr(block, 'text')
+        )
         
         # Send response to user
         await update.message.reply_text(response_text)
