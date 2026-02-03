@@ -12,3 +12,11 @@ wheels/
 
 # Direnv environment variables
 .envrc
+
+# Terraform file with tokens
+terraform/tfvars.tf
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/terraform.tfvars
+terraform/.terraform.lock.hcl
