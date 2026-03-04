@@ -65,8 +65,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "name": "web_search",
                     "max_uses": 5,
                     "allowed_domains": [
-                        "https://miljuschka.nl",
-                        "https://uitpaulineskeuken.nl"
+                        "miljuschka.nl",
+                        "uitpaulineskeuken.nl"
                     ]}],
             messages=[
                 {"role": "user", "content": user_message}
