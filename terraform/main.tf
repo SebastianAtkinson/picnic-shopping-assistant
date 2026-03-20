@@ -49,6 +49,32 @@ resource "google_secret_manager_secret_version" "anthropic_key" {
   secret_data = var.anthropic_api_key
 }
 
+resource "google_secret_manager_secret" "picnic_username" {
+  secret_id = "PICNIC_USERNAME"
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "picnic_username" {
+  secret      = google_secret_manager_secret.picnic_username.id
+  secret_data = var.picnic_username
+}
+
+resource "google_secret_manager_secret" "picnic_password" {
+  secret_id = "PICNIC_PASSWORD"
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "picnic_password" {
+  secret      = google_secret_manager_secret.picnic_password.id
+  secret_data = var.picnic_password
+}
+
 # Service account for Cloud Run
 resource "google_service_account" "picnic_bot" {
   account_id   = "picnic-bot-sa"
@@ -64,6 +90,18 @@ resource "google_secret_manager_secret_iam_member" "telegram_token_access" {
 
 resource "google_secret_manager_secret_iam_member" "anthropic_key_access" {
   secret_id = google_secret_manager_secret.anthropic_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.picnic_bot.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "picnic_username_access" {
+  secret_id = google_secret_manager_secret.picnic_username.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.picnic_bot.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "picnic_password_access" {
+  secret_id = google_secret_manager_secret.picnic_password.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.picnic_bot.email}"
 }
@@ -107,7 +145,27 @@ resource "google_cloud_run_v2_service" "picnic_bot" {
           }
         }
       }
-      
+
+      env {
+        name = "PICNIC_USERNAME"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.picnic_username.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "PICNIC_PASSWORD"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.picnic_password.secret_id
+            version = "latest"
+          }
+        }
+      }
+
       resources {
         limits = {
           cpu    = "1"
@@ -129,7 +187,9 @@ resource "google_cloud_run_v2_service" "picnic_bot" {
   
   depends_on = [
     google_secret_manager_secret_version.telegram_token,
-    google_secret_manager_secret_version.anthropic_key
+    google_secret_manager_secret_version.anthropic_key,
+    google_secret_manager_secret_version.picnic_username,
+    google_secret_manager_secret_version.picnic_password,
   ]
 }
 

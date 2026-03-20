@@ -27,6 +27,18 @@ variable "anthropic_api_key" {
   sensitive   = true
 }
 
+variable "picnic_username" {
+  description = "Picnic account username (email)"
+  type        = string
+  sensitive   = true
+}
+
+variable "picnic_password" {
+  description = "Picnic account password"
+  type        = string
+  sensitive   = true
+}
+
 variable "image_tag" {
   description = "Docker image tag to deploy"
   type        = string
