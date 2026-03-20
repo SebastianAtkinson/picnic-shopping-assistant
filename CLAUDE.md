@@ -10,8 +10,6 @@ For each suggestion the bot returns: recipe name, a one-sentence description, es
 
 Deployed as a containerised application on Google Cloud Run. In production it runs as a webhook; in development it uses long-polling.
 
-The intention is to expand this so that items can be added to my basket in my Picnic groceries shopping app. This application does not have a public API hence I want to attempt to infer how to send post requests there anyway
-
 ## Key Files
 
 | File | Purpose |

@@ -44,3 +44,9 @@ variable "image_tag" {
   type        = string
   default     = "latest"
 }
+
+variable "webhook_url" {
+  description = "Public HTTPS URL of the Cloud Run service (used as Telegram webhook)"
+  type        = string
+  default     = ""
+}

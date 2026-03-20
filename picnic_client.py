@@ -17,8 +17,37 @@ def get_picnic_client() -> PicnicAPI:
     return _client
 
 
+def _select_best_product(items: list[dict]) -> dict | None:
+    """Select the best product using this priority:
+    1. Biological/organic (bio in name) — always preferred over non-bio
+    2. Picnic house brand — preferred within the same bio tier
+    3. Price ascending — cheaper options before expensive brands
+    """
+    if not items:
+        return None
+
+    def score(product):
+        name = product.get("name", "").lower()
+        is_bio = any(kw in name for kw in ("bio", "biologisch", "organic"))
+        is_picnic = "picnic" in name
+        price = product.get("display_price", 999_999)
+
+        if is_bio and is_picnic:
+            tier = 0
+        elif is_bio:
+            tier = 1
+        elif is_picnic:
+            tier = 2
+        else:
+            tier = 3
+
+        return (tier, price)
+
+    return min(items, key=score)
+
+
 def add_ingredients_to_cart(ingredients: list[str]) -> dict:
-    """Search Picnic for each ingredient and add the top result to cart.
+    """Search Picnic for each ingredient and add the best result to cart.
 
     Returns:
         {
@@ -33,12 +62,8 @@ def add_ingredients_to_cart(ingredients: list[str]) -> dict:
     for ingredient in ingredients:
         try:
             results = client.search(ingredient)
-            product = None
-            for category in results:
-                items = category.get("items", [])
-                if items:
-                    product = items[0]
-                    break
+            all_items = [item for category in results for item in category.get("items", [])]
+            product = _select_best_product(all_items)
 
             if product is None:
                 not_found.append(ingredient)
@@ -50,7 +75,6 @@ def add_ingredients_to_cart(ingredients: list[str]) -> dict:
             added.append({
                 "ingredient": ingredient,
                 "product_name": product_name,
-                "product_id": product_id,
             })
         except Exception as e:
             logger.error(f"Error adding ingredient '{ingredient}': {e}")

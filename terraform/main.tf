@@ -125,6 +125,11 @@ resource "google_cloud_run_v2_service" "picnic_bot" {
         name  = "ENVIRONMENT"
         value = "production"
       }
+
+      env {
+        name  = "WEBHOOK_URL"
+        value = var.webhook_url
+      }
       
       env {
         name = "TELEGRAM_BOT_TOKEN"
