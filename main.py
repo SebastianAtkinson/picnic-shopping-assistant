@@ -426,7 +426,9 @@ def main():
 
     application.add_handler(CallbackQueryHandler(stale_callback_handler))
 
-    if ENVIRONMENT == 'production' and WEBHOOK_URL:
+    if ENVIRONMENT == 'production':
+        if not WEBHOOK_URL:
+            raise RuntimeError("WEBHOOK_URL must be set in production mode")
         logger.info(f"Starting webhook on port {PORT}")
         application.run_webhook(
             listen="0.0.0.0",

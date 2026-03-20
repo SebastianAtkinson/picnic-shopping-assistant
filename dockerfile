@@ -8,19 +8,16 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 
-RUN uv sync --frozen --no-dev
+RUN uv pip install --system --no-cache -r pyproject.toml
 
 # Stage 2: Runtime
-# This two-stage setup reduces the final image size by only copying the .venv files needed to run the application.
+# This two-stage setup reduces the final image size by only copying the site-packages needed to run the application.
 FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
-COPY src/ .
-
-# Use the virtual environment
-ENV PATH="/app/.venv/bin:$PATH"
+COPY main.py picnic_client.py config.py ./
 
 CMD ["python", "main.py"]

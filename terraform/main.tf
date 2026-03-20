@@ -62,6 +62,19 @@ resource "google_secret_manager_secret_version" "picnic_username" {
   secret_data = var.picnic_username
 }
 
+resource "google_secret_manager_secret" "picnic_auth_token" {
+  secret_id = "PICNIC_AUTH_TOKEN"
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "picnic_auth_token" {
+  secret      = google_secret_manager_secret.picnic_auth_token.id
+  secret_data = var.picnic_auth_token
+}
+
 resource "google_secret_manager_secret" "picnic_password" {
   secret_id = "PICNIC_PASSWORD"
 
@@ -96,6 +109,12 @@ resource "google_secret_manager_secret_iam_member" "anthropic_key_access" {
 
 resource "google_secret_manager_secret_iam_member" "picnic_username_access" {
   secret_id = google_secret_manager_secret.picnic_username.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.picnic_bot.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "picnic_auth_token_access" {
+  secret_id = google_secret_manager_secret.picnic_auth_token.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.picnic_bot.email}"
 }
@@ -171,6 +190,16 @@ resource "google_cloud_run_v2_service" "picnic_bot" {
         }
       }
 
+      env {
+        name = "PICNIC_AUTH_TOKEN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.picnic_auth_token.secret_id
+            version = "latest"
+          }
+        }
+      }
+
       resources {
         limits = {
           cpu    = "1"
@@ -195,6 +224,7 @@ resource "google_cloud_run_v2_service" "picnic_bot" {
     google_secret_manager_secret_version.anthropic_key,
     google_secret_manager_secret_version.picnic_username,
     google_secret_manager_secret_version.picnic_password,
+    google_secret_manager_secret_version.picnic_auth_token,
   ]
 }
 

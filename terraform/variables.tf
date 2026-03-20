@@ -39,6 +39,12 @@ variable "picnic_password" {
   sensitive   = true
 }
 
+variable "picnic_auth_token" {
+  description = "Picnic auth token (used instead of username/password for 2FA accounts)"
+  type        = string
+  sensitive   = true
+}
+
 variable "image_tag" {
   description = "Docker image tag to deploy"
   type        = string
